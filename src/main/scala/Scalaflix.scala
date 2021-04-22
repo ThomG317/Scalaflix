@@ -37,7 +37,7 @@ object Scalaflix {
    */
   private[this] def jsonFromRequest(path: String, request: String = ""): JValue = parse(sourceFromRequest(path, request).mkString)
 
-  private[this] var cacheFindActorId: Map[(String, String), Int] = Map()
+  var cacheFindActorId: Map[(String, String), Int] = Map()
 
   /**
    * Find an actor's Id
@@ -60,7 +60,7 @@ object Scalaflix {
     return res;
   }
 
-  private[this] var cacheFindActorMovie: Map[Int, Set[Movie]] = Map()
+ var cacheFindActorMovie: Map[Int, Set[Movie]] = Map()
   private[this] case class ActorCast(id: Int, original_title: String)
 
   /**
@@ -81,7 +81,7 @@ object Scalaflix {
     return  res
   }
 
-  private[this] var cacheCreditWorker: Map[Int, MovieDirector] = Map()
+  var cacheCreditWorker: Map[Int, MovieDirector] = Map()
   private[this] case class CreditWorker(id: Int, known_for_department: String, name: String)
 
   /**
@@ -104,7 +104,7 @@ object Scalaflix {
     return res
   }
 
-  private[this] var cacheRequest: Map[(Actor, Actor), Set[(String, String)]] = Map()
+  var cacheRequest: Map[(Actor, Actor), Set[(String, String)]] = Map()
 
   /**
    * Find common movie between two actors
@@ -143,6 +143,11 @@ object Scalaflix {
    * @return a list of the pair of actors
    */
   def findActorsOftenPaired(): Set[(Actor, Actor)] = {
-    cacheRequest.toSeq.sortBy(_._2.size).reverse.slice(0, cacheRequest.size / 2).toSet.map(x => x._1)
+    cacheRequest.toSeq
+                .sortBy(_._2.size)
+                .reverse
+                .slice(0, cacheRequest.size / 2)
+                .toSet
+                .map(x => x._1)
   }
 }

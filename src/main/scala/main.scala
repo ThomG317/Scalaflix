@@ -7,7 +7,7 @@ import org.json4s.native.JsonMethods._
 object main extends App {
 
   // println(findActorId("jennifer", ""))
-  Scalaflix.findActorId("jennifer", "")
+  Scalaflix.findActorId("jennif", "")
 
   Scalaflix.findActorMovies(4491)
 
