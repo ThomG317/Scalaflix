@@ -13,12 +13,38 @@ object Scalaflix {
   private[this] val api_key = "344e85c6d6fcb941f8c0f5da6200c97a"
 
   // APi methods
+
+  /**
+   * Execute request
+   * @param url Full url of the request
+   * @return Response of the request
+   */
   private[this] def sourceFromURL(url: String): BufferedSource = Source.fromURL(url)
+
+  /**
+   * Execute a request using themoviedb API and authentication key
+   * @param path Path of the request
+   * @param request Parameters of the request
+   * @return Response of the request
+   */
   private[this] def sourceFromRequest(path: String, request: String): BufferedSource = sourceFromURL(s"$baseUrl$path?api_key=$api_key&$request")
-  private[this] def sourceFromRequestParams(path: String, requestParams: List[String] = Nil): BufferedSource = sourceFromRequest(path, requestParams.mkString("&"))
+
+  /**
+   * Execute a request using themoviedb API and and return a json response
+   * @param path Path of the request
+   * @param request Query params of the request
+   * @return JSON response of the request
+   */
   private[this] def jsonFromRequest(path: String, request: String = ""): JValue = parse(sourceFromRequest(path, request).mkString)
 
   private[this] var cacheFindActorId: Map[(String, String), Int] = Map()
+
+  /**
+   * Find an actor's Id
+   * @param name Name of the actor
+   * @param surname Surname of the actor
+   * @return Id of the actor if existing
+   */
   def findActorId(name: String, surname: String): Option[Int] = {
     // check if exist in cache
     val cache = cacheFindActorId.get((name, surname))
@@ -36,6 +62,12 @@ object Scalaflix {
 
   private[this] var cacheFindActorMovie: Map[Int, Set[Movie]] = Map()
   private[this] case class ActorCast(id: Int, original_title: String)
+
+  /**
+   * Find the movies an actor played in
+   * @param id ID of the actor
+   * @return list of movies (first page of results only)
+   */
   def findActorMovies(id: Int): Set[Movie] = {
     // check if exist in cache
     val cache = cacheFindActorMovie.get(id)
@@ -51,22 +83,35 @@ object Scalaflix {
 
   private[this] var cacheCreditWorker: Map[Int, MovieDirector] = Map()
   private[this] case class CreditWorker(id: Int, known_for_department: String, name: String)
-  def findMovieDirector(id: Int): Option[MovieDirector] = {
+
+  /**
+   * Find a movie director
+   * @param movieId ID of the movie
+   * @return the first director found for this movie if existing
+   */
+  def findMovieDirector(movieId: Int): Option[MovieDirector] = {
     // check if exist in cache
-    val cache = cacheCreditWorker.get(id)
+    val cache = cacheCreditWorker.get(movieId)
     if (cache.nonEmpty) return cache
 
-    val movieList = (jsonFromRequest(s"/movie/$id/credits") \ "cast").extract[Set[CreditWorker]]
+    val movieList = (jsonFromRequest(s"/movie/$movieId/credits") \ "cast").extract[Set[CreditWorker]]
     val res = movieList.filter(x => x.known_for_department == "Directing").map(x => new MovieDirector(x.id, x.name)).headOption
 
     // store in cache
     if (res.nonEmpty) {
-      cacheCreditWorker += (id -> res.get)
+      cacheCreditWorker += (movieId -> res.get)
     }
     return res
   }
 
   private[this] var cacheRequest: Map[(Actor, Actor), Set[(String, String)]] = Map()
+
+  /**
+   * Find common movie between two actors
+   * @param actor1 first actor of the pair
+   * @param actor2 second actor of the pair
+   * @return a list of the common movies (first page of results only)
+   */
   def request(actor1: Actor, actor2: Actor): Set[(String, String)] = {
     // check if exist in cache
     val cache = cacheRequest.get((actor1, actor2))
@@ -91,5 +136,13 @@ object Scalaflix {
     // store in cache
     if (res.nonEmpty) cacheRequest += ((actor1, actor2) -> res)
     return  res
+  }
+
+  /**
+   * Find the pair of actors that played together the most
+   * @return a list of the pair of actors
+   */
+  def findActorsOftenPaired(): Set[(Actor, Actor)] = {
+    cacheRequest.toSeq.sortBy(_._2.size).reverse.slice(0, cacheRequest.size / 2).toSet.map(x => x._1)
   }
 }
