@@ -4,23 +4,21 @@ import org.json4s.native.JsonMethods.parse
 
 import scala.io.{BufferedSource, Source}
 
-class Scalaflix
-
 object Scalaflix {
   // json4s var
-  implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
+ private[this] implicit val formats: DefaultFormats.type = org.json4s.DefaultFormats
 
   // API var
-  val baseUrl = "https://api.themoviedb.org/3"
-  val api_key = "344e85c6d6fcb941f8c0f5da6200c97a"
+  private[this] val baseUrl = "https://api.themoviedb.org/3"
+  private[this] val api_key = "344e85c6d6fcb941f8c0f5da6200c97a"
 
   // APi methods
-  def sourceFromURL(url: String): BufferedSource = Source.fromURL(url)
-  def sourceFromRequest(path: String, request: String): BufferedSource = sourceFromURL(s"$baseUrl$path?api_key=$api_key&$request")
-  def sourceFromRequestParams(path: String, requestParams: List[String] = Nil): BufferedSource = sourceFromRequest(path, requestParams.mkString("&"))
-  def jsonFromRequest(path: String, request: String = ""): JValue = parse(sourceFromRequest(path, request).mkString)
+  private[this] def sourceFromURL(url: String): BufferedSource = Source.fromURL(url)
+  private[this] def sourceFromRequest(path: String, request: String): BufferedSource = sourceFromURL(s"$baseUrl$path?api_key=$api_key&$request")
+  private[this] def sourceFromRequestParams(path: String, requestParams: List[String] = Nil): BufferedSource = sourceFromRequest(path, requestParams.mkString("&"))
+  private[this] def jsonFromRequest(path: String, request: String = ""): JValue = parse(sourceFromRequest(path, request).mkString)
 
-  var cacheFindActorId: Map[(String, String), Int] = Map()
+  private[this] var cacheFindActorId: Map[(String, String), Int] = Map()
   def findActorId(name: String, surname: String): Option[Int] = {
     // check if exist in cache
     val cache = cacheFindActorId.get((name, surname))
@@ -36,8 +34,8 @@ object Scalaflix {
     return res;
   }
 
-  var cacheFindActorMovie: Map[Int, Set[Movie]] = Map()
-  case class ActorCast(id: Int, original_title: String)
+  private[this] var cacheFindActorMovie: Map[Int, Set[Movie]] = Map()
+  private[this] case class ActorCast(id: Int, original_title: String)
   def findActorMovies(id: Int): Set[Movie] = {
     // check if exist in cache
     val cache = cacheFindActorMovie.get(id)
@@ -51,8 +49,8 @@ object Scalaflix {
     return  res
   }
 
-  var cacheCreditWorker: Map[Int, MovieDirector] = Map()
-  case class CreditWorker(id: Int, known_for_department: String, name: String)
+  private[this] var cacheCreditWorker: Map[Int, MovieDirector] = Map()
+  private[this] case class CreditWorker(id: Int, known_for_department: String, name: String)
   def findMovieDirector(id: Int): Option[MovieDirector] = {
     // check if exist in cache
     val cache = cacheCreditWorker.get(id)
@@ -68,7 +66,7 @@ object Scalaflix {
     return res
   }
 
-  var cacheRequest: Map[(Actor, Actor), Set[(String, String)]] = Map()
+  private[this] var cacheRequest: Map[(Actor, Actor), Set[(String, String)]] = Map()
   def request(actor1: Actor, actor2: Actor): Set[(String, String)] = {
     // check if exist in cache
     val cache = cacheRequest.get((actor1, actor2))
