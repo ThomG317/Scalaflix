@@ -104,21 +104,22 @@ object Scalaflix {
     return res
   }
 
-  var cacheRequest: Map[(Actor, Actor), Set[(String, String)]] = Map()
+  var cacheRequest: Map[(FullName, FullName), Set[(String, String)]] = Map()
 
+  case class FullName(name: String, surname: String)
   /**
    * Find common movie between two actors
    * @param actor1 first actor of the pair
    * @param actor2 second actor of the pair
    * @return a list of the common movies (first page of results only)
    */
-  def request(actor1: Actor, actor2: Actor): Set[(String, String)] = {
+  def request(actor1: FullName, actor2: FullName): Set[(String, String)] = {
     // check if exist in cache
     val cache = cacheRequest.get((actor1, actor2))
     if (cache.nonEmpty) return cache.get
 
 
-    def moviesFromFullName(fn: Actor): Set[Movie] = findActorId(actor1.name, actor1.surname) match {
+    def moviesFromFullName(fn: FullName): Set[Movie] = findActorId(actor1.name, actor1.surname) match {
       case Some(id1) => findActorMovies(id1)
       case None => Set.empty
     }
@@ -142,12 +143,10 @@ object Scalaflix {
    * Find the pair of actors that played together the most
    * @return a list of the pair of actors
    */
-  def findActorsOftenPaired(): Set[(Actor, Actor)] = {
+  def findActorsOftenPaired(): Seq[(FullName, FullName)] = {
     cacheRequest.toSeq
                 .sortBy(_._2.size)
-                .reverse
                 .slice(0, cacheRequest.size / 2)
-                .toSet
                 .map(x => x._1)
   }
 }
