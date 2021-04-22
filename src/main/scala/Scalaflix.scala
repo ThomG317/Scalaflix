@@ -43,7 +43,7 @@ object Scalaflix {
    * Find an actor's Id
    * @param name Name of the actor
    * @param surname Surname of the actor
-   * @return Id of the actor if existing
+   * @return Id of the first actor matching the request if existing
    */
   def findActorId(name: String, surname: String): Option[Int] = {
     // check if exist in cache
